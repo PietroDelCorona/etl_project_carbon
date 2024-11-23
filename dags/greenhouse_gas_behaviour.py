@@ -29,6 +29,18 @@ with DAG(
     def extract_co2_land_use():
         pass
 
+    def clean_co2_emission():
+        pass
+
+    def clean_population_data():
+        pass
+
+    def clean_energy_mix():
+        pass
+
+    def clean_co2_land_use():
+        pass
+
     get_co2_task = PythonOperator(
         task_id = "extract_co2_emission",
         python_callable=extract_co2_emission
@@ -49,5 +61,25 @@ with DAG(
         python_callable=extract_co2_land_use
     )
 
+    clean_co2_emission_task = PythonOperator(
+        task_id = "clean_co2_emission",
+        python_callable=clean_co2_emission
+    )
+
+    clean_population_task = PythonOperator(
+        task_id = "clean_population_data",
+        python_callable=clean_population_data
+    )
+
+    clean_energy_mix_task = PythonOperator(
+        task_id = "clean_energy_mix",
+        python_callable=clean_energy_mix
+    )
+
+    clean_co2_land_use_task = PythonOperator(
+        task_id = "clean_co2_land_use",
+        python_callable=clean_co2_land_use
+    )
+
     
-    get_co2_task >> get_population_task >> get_energy_mix >> get_co2_land_use
+    get_co2_task >> get_population_task >> get_energy_mix >> get_co2_land_use >> clean_co2_emission_task >> clean_population_task >> clean_energy_mix_task >> clean_co2_land_use_task
