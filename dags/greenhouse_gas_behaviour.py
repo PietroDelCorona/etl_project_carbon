@@ -87,7 +87,7 @@ with DAG(
 
 
     def extract_co2_land_use():
-        URL = "https://ourworldindata.org/grapher/co2-land-use.csv?v=1&csvType=full&useColumnShortNames=true"
+        URL = "https://ourworldindata.org/grapher/co2-emissions-fossil-land.csv?v=1&csvType=full&useColumnShortNames=true"
 
         response = requests.get(URL, verify=False)
 
