@@ -105,17 +105,115 @@ with DAG(
         else:
             print(f"Erro ao obter os dados: {response.status_code} - {response.text}")
 
-    def clean_co2_emission():
-        pass
+    def clean_co2_emission(source):
+        try:
+            file = s3.get_object(
+                Bucket ='bronze',
+                Key = f"co2_emissions/{source}"
+            )
 
-    def clean_population_data():
-        pass
+            co2_emissions_per_capita = pd.read_csv(file['Body'], sep=',')
 
-    def clean_energy_mix():
-        pass
+            co2_emissions_per_capita = co2_emissions_per_capita.drop(columns=['Code'])
 
-    def clean_co2_land_use():
-        pass
+            csv_buffer = StringIO()
+            co2_emissions_per_capita[['Entity', 'Year', 'emissions_total_per_capita']].to_csv(csv_buffer, index=False)
+
+            s3.put_object(
+                Body=csv_buffer.getvalue(),
+                Bucket='silver',
+                Key=f'co2_emissions/cleansed_{source}',
+                ContentType = 'application/csv'
+            )
+            print(f"Arquivo {source} processado e salvo no bucket: 'silver' com sucesso!")
+        except Exception as e:
+            print(f"Erro ao processar o arquivo {source}: {e}")
+
+    def clean_population_data(source):
+        try:
+            file = s3.get_object(
+                Bucket ='bronze',
+                Key = f"population/{source}"
+            )
+
+            world_population = pd.read_csv(file['Body'], sep=',', low_memory=False)
+
+            world_population = world_population.drop(columns=['Record Type','Reliability','Source Year','Value Footnotes'])
+
+            world_population = world_population.dropna(subset=['Value'])
+
+            world_population = world_population[world_population["Sex"] == "Both Sexes"]
+
+            world_population = world_population.drop(columns=['Sex'])
+
+            csv_buffer = StringIO()
+            world_population[['Country or Area', 'Year', 'Area', 'Value']].to_csv(csv_buffer, index=False)
+
+            s3.put_object(
+                Body=csv_buffer.getvalue(),
+                Bucket='silver',
+                Key=f'population/cleansed_{source}',
+                ContentType = 'application/csv'
+            )
+            print(f"Arquivo {source} processado e salvo no bucket: 'silver' com sucesso!")          
+        except Exception as e:
+            print(f"Erro ao processar o arquivo {source}: {e}")
+
+    def clean_energy_mix(source):
+        try:
+            file = s3.get_object(
+                Bucket = 'bronze',
+                Key = f'energy_mix/{source}'
+            )
+        
+            energy_stacked_per_capita = pd.read_csv(file['Body'], sep=",")
+
+            energy_stacked_per_capita = energy_stacked_per_capita.drop(columns=['Code'])
+
+            energy_stacked_per_capita.fillna(0, inplace=True)
+
+            # print(energy_stacked_per_capita.columns.tolist())
+
+            csv_buffer = StringIO()
+            energy_stacked_per_capita[['Entity', 'Year', 'fossil_fuels_per_capita__kwh', 'nuclear_per_capita__kwh__equivalent', 'renewables_per_capita__kwh__equivalent']].to_csv(csv_buffer, index=False)
+
+            s3.put_object(
+                Body = csv_buffer.getvalue(),
+                Bucket = 'silver',
+                Key = f"energy_mix/cleansed_{source}",
+                ContentType = "application/csv"
+            )
+            print(f"Arquivo {source} processado e salvo no bucket: 'silver' com sucesso!")
+        except Exception as e:
+            print(f"Erro ao processar o arquivo {source}: {e}")
+
+    def clean_co2_land_use(source):
+        try:
+            file = s3.get_object(
+                Bucket ='bronze',
+                Key = f"co2_land_use/{source}"
+            )
+
+            co2_land_use = pd.read_csv(file['Body'], sep=',')
+
+            co2_land_use = co2_land_use.drop(columns=['Code'])
+
+            co2_land_use = co2_land_use.dropna(subset=['emissions_from_land_use_change','emissions_total'])
+
+            # print(co2_land_use.columns.tolist())
+
+            csv_buffer = StringIO()
+            co2_land_use[['Entity', 'Year', 'emissions_from_land_use_change', 'emissions_total']].to_csv(csv_buffer, index=False)
+
+            s3.put_object(
+                Body = csv_buffer.getvalue(),
+                Bucket = 'silver',
+                Key = f"co2_land_use/cleansed_{source}",
+                ContentType = "application/csv"
+            )
+            print(f"Arquivo {source} processado e salvo no bucket: 'silver' com sucesso!")
+        except Exception as e:
+            print(f"Erro ao processar o arquivo {source}: {e}")
 
     get_co2_task = PythonOperator(
         task_id = "extract_co2_emission",
@@ -139,22 +237,26 @@ with DAG(
 
     clean_co2_emission_task = PythonOperator(
         task_id = "clean_co2_emission",
-        python_callable=clean_co2_emission
+        python_callable=clean_co2_emission,
+        op_kwargs = {"source" : "co2_emission_per_capita.csv"}
     )
 
     clean_population_task = PythonOperator(
         task_id = "clean_population_data",
-        python_callable=clean_population_data
+        python_callable=clean_population_data,
+        op_kwargs = {"source" : "world_population.csv"}
     )
 
     clean_energy_mix_task = PythonOperator(
         task_id = "clean_energy_mix",
-        python_callable=clean_energy_mix
+        python_callable=clean_energy_mix,
+        op_kwargs = {"source" : "energy_mix_sources.csv"}
     )
 
     clean_co2_land_use_task = PythonOperator(
         task_id = "clean_co2_land_use",
-        python_callable=clean_co2_land_use
+        python_callable=clean_co2_land_use,
+        op_kwargs = {"source" : "co2_land_use.csv"}
     )
 
     
