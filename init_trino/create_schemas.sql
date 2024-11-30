@@ -40,7 +40,7 @@ create table if not exists minio.prod_bronze.energy_mix_sources (
         );
 
 
-create table if not exists minio.prod_bronze.population(
+create table if not exists minio.prod_bronze.population (
     country_or_area VARCHAR,
     year INT,
     area VARCHAR,
@@ -60,7 +60,7 @@ create table if not exists minio.prod_bronze.population(
 create table if not exists minio.prod_silver.cleansed_co2_emission_per_capita (
     entity VARCHAR,
     year INT,
-    emissions_total DECIMAL(10,8)
+    emissions_total_per_capita DECIMAL(10,8)
 ) WITH (
             external_location = 's3a://silver/co2_emissions/',
             format = 'CSV',
@@ -85,7 +85,7 @@ create table if not exists minio.prod_silver.cleansed_energy_mix_sources (
     year INT,
     fossil_fuels_per_capita__kwh DECIMAL(10,5),
     nuclear_per_capita__kwh__equivalent DECIMAL(10,5),
-    renewables_per_capita_kwh__equivalent DECIMAL(10,5)
+    renewables_per_capita__kwh__equivalent DECIMAL(10,5)
 ) WITH (
             external_location = 's3a://silver/energy_mix/',
             format = 'CSV',
