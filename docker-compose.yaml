@@ -357,6 +357,16 @@ services:
     depends_on:
       - mariadb
 
+  superset:
+    build: ./superset
+    container_name: superset
+    ports:
+      - 8088:8088
+    volumes:
+      - ./superset-data:/app/superset_home
+    environment:
+      - SUPERSET_SECRET_KEY=your_secret_key_here
+
 volumes:
   postgres-db-volume:
   minio-data:
