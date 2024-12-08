@@ -1,5 +1,7 @@
 create schema if not exists minio.prod_bronze with (location = 's3a://bronze/');
 create schema if not exists minio.prod_silver with (location = 's3a://silver/');
+create schema if not exists minio.prod_gold with (location = 's3a://gold/');
+
 
 
 create table if not exists minio.prod_bronze.co2_emission_per_capita (
