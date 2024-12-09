@@ -67,7 +67,7 @@ with DAG(
             print(f"Erro ao processar o arquivo {file_path}: {e}")
 
     def extract_energy_mix():
-        URL = "https://ourworldindata.org/grapher/per-capita-energy-source-stacked.csv?v=1&csvType=full&useColumnShortNames=true"
+        URL = "https://ourworldindata.org/grapher/per-capita-energy-stacked.csv?v=1&csvType=full&useColumnShortNames=true"
 
         response = requests.get(URL, verify=False)
 
@@ -175,7 +175,7 @@ with DAG(
             # print(energy_stacked_per_capita.columns.tolist())
 
             csv_buffer = StringIO()
-            energy_stacked_per_capita[['Entity', 'Year', 'fossil_fuels_per_capita__kwh', 'nuclear_per_capita__kwh__equivalent', 'renewables_per_capita__kwh__equivalent']].to_csv(csv_buffer, index=False)
+            energy_stacked_per_capita[['Entity','Code','Year', 'coal_per_capita__kwh', 'oil_per_capita__kwh', 'gas_per_capita__kwh', 'nuclear_per_capita__kwh__equivalent', 'hydro_per_capita__kwh__equivalent', 'wind_per_capita__kwh__equivalent', 'solar_per_capita__kwh__equivalent', 'other_renewables_per_capita__kwh__equivalent']].to_csv(csv_buffer, index=False)
 
             s3.put_object(
                 Body = csv_buffer.getvalue(),
